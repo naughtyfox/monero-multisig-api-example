@@ -3,9 +3,17 @@ cmake_minimum_required(VERSION 2.8.7)
 project(app-monero)
 
 option(ANDROID "Build for android")
+option(IOS "Build for ios")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(MONERO_ROOT /home/user/src/monero)
+
+if (IOS)
+    INCLUDE(CMakeLists_IOS.txt)
+    set(CMAKE_OSX_SYSROOT "${CMAKE_IOS_SDK_ROOT}")
+    message("${CMAKE_OSX_SYSROOT}")
+endif()
+set(ARCH_FLAG "-march=armv8 -arch arm64")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${ARCH_FLAG} -isysroot ${CMAKE_OSX_SYSROOT}")
+set(MONERO_ROOT ${PROJECT_SOURCE_DIR}/../monero)
 set(SRC main.cpp)
 
 include_directories(${MONERO_ROOT})
@@ -35,6 +43,9 @@ if (ANDROID)
         /opt/android/lib/armeabi-v7a/
         /opt/android/lib/armeabi-v7a/boost
     )
+elseif(IOS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${BOOST_ROOT}")
+    link_directories(${PROJECT_SOURCE_DIR}/../monero-libs/ios-arm64)
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
